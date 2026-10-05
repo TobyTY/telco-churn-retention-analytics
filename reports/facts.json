@@ -1,0 +1,751 @@
+{
+  "eda": {
+    "figures": [
+      "05_tenure_distribution.png",
+      "06_charges_distribution.png",
+      "07_addons.png",
+      "08_contract_internet.png"
+    ],
+    "churned_first_year_share": 0.554842,
+    "median_charges_churned": 79.65,
+    "median_charges_retained": 64.425,
+    "churn_0_addons_internet": 0.522367,
+    "churn_5plus_addons": 0.100585,
+    "m2m_fiber_churn": 0.546053
+  },
+  "analysis": {
+    "constants": {
+      "ci_level_pct": 95,
+      "alpha": 0.05,
+      "p_floor": 0.001,
+      "months_per_year": 12,
+      "charge_band_edges": [
+        35,
+        70,
+        90
+      ],
+      "tenure_band_edges": [
+        12,
+        24,
+        48,
+        72
+      ],
+      "tenure_band_starts": [
+        0,
+        13,
+        25,
+        49
+      ],
+      "survival_checkpoints": [
+        12,
+        24,
+        72
+      ],
+      "total_charges_gap_pct": 20,
+      "min_segment_size": 100
+    },
+    "kpi": {
+      "customers": 7043,
+      "churned": 1869,
+      "retained": 5174,
+      "churn_rate": 0.26537,
+      "mrr_total": 456116.6,
+      "mrr_lost": 139130.85,
+      "annual_revenue_lost": 1669570.2,
+      "mrr_lost_share": 0.305034,
+      "avg_charges_churned": 74.4413,
+      "avg_charges_retained": 61.2651,
+      "avg_tenure_churned": 17.9791,
+      "avg_tenure_retained": 37.57,
+      "median_tenure_churned": 10.0,
+      "churned_in_first_year_share": 0.554842,
+      "lifetime_revenue_lost": 2862926.9
+    },
+    "crosscheck": {
+      "sql_churn_rate": 0.26537,
+      "python_churn_rate": 0.26537,
+      "sql_mrr_lost": 139130.85,
+      "python_mrr_lost": 139130.85
+    },
+    "segments": {
+      "m2m": {
+        "customers": 3875,
+        "churned": 1655,
+        "churn_rate": 0.427097,
+        "ci_low": 0.411602,
+        "ci_high": 0.442736,
+        "mrr_lost": 120847.1
+      },
+      "one_year": {
+        "customers": 1473,
+        "churned": 166,
+        "churn_rate": 0.112695,
+        "ci_low": 0.0975436,
+        "ci_high": 0.129862,
+        "mrr_lost": 14118.45
+      },
+      "two_year": {
+        "customers": 1695,
+        "churned": 48,
+        "churn_rate": 0.0283186,
+        "ci_low": 0.0214253,
+        "ci_high": 0.037345,
+        "mrr_lost": 4165.3
+      },
+      "tenure_0_12": {
+        "customers": 2186,
+        "churned": 1037,
+        "churn_rate": 0.474382,
+        "ci_low": 0.453513,
+        "ci_high": 0.495342,
+        "mrr_lost": 68954.25
+      },
+      "tenure_49_72": {
+        "customers": 2239,
+        "churned": 213,
+        "churn_rate": 0.0951318,
+        "ci_low": 0.083663,
+        "ci_high": 0.107987,
+        "mrr_lost": 19632.45
+      },
+      "fiber": {
+        "customers": 3096,
+        "churned": 1297,
+        "churn_rate": 0.418928,
+        "ci_low": 0.401659,
+        "ci_high": 0.436397,
+        "mrr_lost": 114300.05
+      },
+      "dsl": {
+        "customers": 2421,
+        "churned": 459,
+        "churn_rate": 0.189591,
+        "ci_low": 0.174474,
+        "ci_high": 0.205692,
+        "mrr_lost": 22529.2
+      },
+      "no_internet": {
+        "customers": 1526,
+        "churned": 113,
+        "churn_rate": 0.0740498,
+        "ci_low": 0.0619544,
+        "ci_high": 0.0882843,
+        "mrr_lost": 2301.6
+      },
+      "echeck": {
+        "customers": 2365,
+        "churned": 1071,
+        "churn_rate": 0.452854,
+        "ci_low": 0.432885,
+        "ci_high": 0.472976,
+        "mrr_lost": 84288.75
+      },
+      "auto_card": {
+        "customers": 1522,
+        "churned": 232,
+        "churn_rate": 0.152431,
+        "ci_low": 0.13525,
+        "ci_high": 0.171362,
+        "mrr_lost": 17946.6
+      },
+      "no_tech_support": {
+        "customers": 3473,
+        "churned": 1446,
+        "churn_rate": 0.416355,
+        "ci_low": 0.400061,
+        "ci_high": 0.432833,
+        "mrr_lost": 110709.8
+      },
+      "tech_support": {
+        "customers": 2044,
+        "churned": 310,
+        "churn_rate": 0.151663,
+        "ci_low": 0.136768,
+        "ci_high": 0.167866,
+        "mrr_lost": 26119.45
+      },
+      "senior": {
+        "customers": 1142,
+        "churned": 476,
+        "churn_rate": 0.416813,
+        "ci_low": 0.388543,
+        "ci_high": 0.44564,
+        "mrr_lost": 38419.6
+      },
+      "non_senior": {
+        "customers": 5901,
+        "churned": 1393,
+        "churn_rate": 0.236062,
+        "ci_low": 0.225401,
+        "ci_high": 0.247066,
+        "mrr_lost": 100711.25
+      },
+      "paperless": {
+        "customers": 4171,
+        "churned": 1400,
+        "churn_rate": 0.335651,
+        "ci_low": 0.321477,
+        "ci_high": 0.350127,
+        "mrr_lost": 109510.0
+      },
+      "charges_90_plus": {
+        "customers": 1744,
+        "churned": 573,
+        "churn_rate": 0.328555,
+        "ci_low": 0.306909,
+        "ci_high": 0.350955,
+        "mrr_lost": 57054.1
+      },
+      "charges_under_35": {
+        "customers": 1731,
+        "churned": 188,
+        "churn_rate": 0.108608,
+        "ci_low": 0.0948074,
+        "ci_high": 0.124141,
+        "mrr_lost": 4423.05
+      },
+      "echeck_vs_auto_card_ratio": 2.97088,
+      "m2m_vs_two_year_ratio": 15.0819,
+      "m2m_share_of_mrr_lost": 0.868586,
+      "m2m_share_of_customers": 0.550192
+    },
+    "revenue_at_risk": {
+      "top_segment": "Month-to-month / Fiber optic / 00-12 months",
+      "hot_customers": 916,
+      "hot_churn_rate": 0.701965,
+      "hot_mrr_lost": 53178.3,
+      "hot_share_of_customers": 0.130058,
+      "hot_share_of_mrr_lost": 0.382218,
+      "top3_share_of_loss": 0.668344,
+      "mrr_lost_by_contract": {
+        "Month-to-month": 120847.1,
+        "One year": 14118.45,
+        "Two year": 4165.3
+      }
+    },
+    "drivers": {
+      "top": [
+        {
+          "feature": "tenure_months",
+          "label": "Tenure (months)",
+          "effect": 0.479734,
+          "effect_measure": "rank-biserial |r|",
+          "p_value": 2.41964e-208
+        },
+        {
+          "feature": "contract",
+          "label": "Contract",
+          "effect": 0.410116,
+          "effect_measure": "Cramer's V",
+          "p_value": 5.86304e-258
+        },
+        {
+          "feature": "online_security",
+          "label": "Online security",
+          "effect": 0.3474,
+          "effect_measure": "Cramer's V",
+          "p_value": 2.66115e-185
+        },
+        {
+          "feature": "tech_support",
+          "label": "Tech support",
+          "effect": 0.342916,
+          "effect_measure": "Cramer's V",
+          "p_value": 1.44308e-180
+        },
+        {
+          "feature": "internet_service",
+          "label": "Internet service",
+          "effect": 0.322455,
+          "effect_measure": "Cramer's V",
+          "p_value": 9.57179e-160
+        },
+        {
+          "feature": "payment_method",
+          "label": "Payment method",
+          "effect": 0.303359,
+          "effect_measure": "Cramer's V",
+          "p_value": 3.68235e-140
+        }
+      ],
+      "n_tested": 19,
+      "n_significant": 16,
+      "not_significant": [
+        "Multiple lines",
+        "Phone service",
+        "Gender"
+      ],
+      "gender_v": 0.0086121,
+      "gender_p": 0.469834,
+      "contract_v": 0.410116,
+      "tenure_rbc": 0.479734
+    },
+    "survival": {
+      "m2m_s12": 0.703097,
+      "m2m_s24": 0.585915,
+      "m2m_s72": 0.128952,
+      "one_year_s72": 0.568146,
+      "two_year_s72": 0.935739,
+      "all_s12": 0.8432,
+      "all_s72": 0.59279,
+      "logrank_stat": 2352.87,
+      "logrank_p": 0.0
+    }
+  },
+  "model": {
+    "protocol": {
+      "seed": 42,
+      "test_size": 0.25,
+      "cv_folds": 5,
+      "n_train": 5282,
+      "n_test": 1761,
+      "train_churn_rate": 0.26543,
+      "test_churn_rate": 0.26519,
+      "n_features_raw": 20
+    },
+    "campaign_assumptions": {
+      "offer_discount_pct": 20,
+      "offer_months": 6,
+      "contact_cost": 5.0,
+      "save_rate": 0.3,
+      "value_horizon_months": 12,
+      "save_rate_grid": [
+        0.1,
+        0.2,
+        0.3,
+        0.4,
+        0.5
+      ]
+    },
+    "risk_bands": {
+      "high": 0.5,
+      "medium": 0.25
+    },
+    "models": {
+      "table": [
+        {
+          "model": "Logistic regression",
+          "cv_roc_auc": 0.844241,
+          "cv_roc_auc_sd": 0.014768,
+          "cv_pr_auc": 0.661354,
+          "test_roc_auc": 0.846538,
+          "test_pr_auc": 0.637797,
+          "precision_at_0.5": 0.660714,
+          "recall_at_0.5": 0.554604,
+          "f1_at_0.5": 0.603027,
+          "brier": 0.136271
+        },
+        {
+          "model": "Logistic regression (class-weighted)",
+          "cv_roc_auc": 0.843892,
+          "cv_roc_auc_sd": 0.0149591,
+          "cv_pr_auc": 0.659027,
+          "test_roc_auc": 0.846084,
+          "test_pr_auc": 0.635982,
+          "precision_at_0.5": 0.518828,
+          "recall_at_0.5": 0.796574,
+          "f1_at_0.5": 0.628378,
+          "brier": 0.165558
+        },
+        {
+          "model": "Random forest",
+          "cv_roc_auc": 0.843203,
+          "cv_roc_auc_sd": 0.0131348,
+          "cv_pr_auc": 0.658782,
+          "test_roc_auc": 0.842952,
+          "test_pr_auc": 0.64493,
+          "precision_at_0.5": 0.653061,
+          "recall_at_0.5": 0.479657,
+          "f1_at_0.5": 0.553086,
+          "brier": 0.136378
+        },
+        {
+          "model": "Gradient boosting",
+          "cv_roc_auc": 0.838281,
+          "cv_roc_auc_sd": 0.0128717,
+          "cv_pr_auc": 0.657299,
+          "test_roc_auc": 0.839324,
+          "test_pr_auc": 0.644783,
+          "precision_at_0.5": 0.661932,
+          "recall_at_0.5": 0.498929,
+          "f1_at_0.5": 0.568987,
+          "brier": 0.137747
+        }
+      ],
+      "best": "Logistic regression",
+      "best_beats_baseline": false,
+      "baseline_cv_roc_auc": 0.844241,
+      "best_cv_roc_auc": 0.844241,
+      "best_test_roc_auc": 0.846538,
+      "best_test_pr_auc": 0.637797,
+      "test_base_rate": 0.26519,
+      "cv_gap": 0.00595953,
+      "baseline_cv_sd": 0.014768
+    },
+    "leakage": {
+      "excluded_columns": {
+        "customer_id": "identifier",
+        "churned": "target",
+        "tenure_band": "derived from tenure_months",
+        "charges_band": "derived from monthly_charges"
+      },
+      "id_overlap_train_test": 0,
+      "test_rows_with_identical_train_features": 15,
+      "shuffled_label_test_auc": 0.523389,
+      "auc_without_total_charges": 0.844675,
+      "auc_with_total_charges": 0.846538,
+      "max_single_feature_auc": 0.739867,
+      "max_single_feature": "tenure_months",
+      "preprocessing_inside_pipeline": true,
+      "verdict": "no leakage found"
+    },
+    "drivers_model": {
+      "odds_ratios_top_up": {
+        "cat__internet_service_Fiber optic": 1.77591,
+        "num__total_charges": 1.72776,
+        "cat__contract_Month-to-month": 1.68114,
+        "bool__paperless_billing": 1.4984,
+        "bool__is_senior": 1.20031
+      },
+      "odds_ratios_top_down": {
+        "num__tenure_months": 0.285533,
+        "cat__contract_Two year": 0.463847,
+        "cat__internet_service_DSL": 0.501806,
+        "num__monthly_charges": 0.54842,
+        "cat__device_protection_No internet service": 0.732015
+      },
+      "permutation_top5": {
+        "tenure_months": 0.178575,
+        "internet_service": 0.0388891,
+        "contract": 0.0365017,
+        "monthly_charges": 0.0305349,
+        "total_charges": 0.014119
+      }
+    },
+    "threshold": {
+      "chosen": 0.35,
+      "method": "max campaign net value on out-of-fold training predictions",
+      "test_precision": 0.550987,
+      "test_recall": 0.717345,
+      "test_f1": 0.623256,
+      "test_targeted_share": 0.345258,
+      "test_campaign": {
+        "customers": 608,
+        "churners": 335,
+        "churn_rate": 0.550987,
+        "churner_mrr": 25964.9,
+        "group_mrr": 47453.0,
+        "saved_revenue": 93473.64,
+        "cost": 59983.6,
+        "net_value": 33490.04,
+        "roi": 0.55832,
+        "breakeven_save_rate": 0.192515,
+        "customers_saved": 100.5
+      }
+    },
+    "lift": {
+      "top_decile_lift": 2.79088,
+      "top_decile_churn_rate": 0.740113,
+      "top2_capture": 0.505353,
+      "top3_capture": 0.665953,
+      "deciles": [
+        {
+          "decile": 1,
+          "n": 177,
+          "churners": 131,
+          "rate": 0.740113,
+          "p": 0.725742,
+          "cum_capture": 0.280514,
+          "lift": 2.79088
+        },
+        {
+          "decile": 2,
+          "n": 177,
+          "churners": 105,
+          "rate": 0.59322,
+          "p": 0.59084,
+          "cum_capture": 0.505353,
+          "lift": 2.23696
+        },
+        {
+          "decile": 3,
+          "n": 177,
+          "churners": 75,
+          "rate": 0.423729,
+          "p": 0.469134,
+          "cum_capture": 0.665953,
+          "lift": 1.59783
+        },
+        {
+          "decile": 4,
+          "n": 177,
+          "churners": 59,
+          "rate": 0.333333,
+          "p": 0.3393,
+          "cum_capture": 0.792291,
+          "lift": 1.25696
+        },
+        {
+          "decile": 5,
+          "n": 177,
+          "churners": 41,
+          "rate": 0.231638,
+          "p": 0.224052,
+          "cum_capture": 0.880086,
+          "lift": 0.87348
+        },
+        {
+          "decile": 6,
+          "n": 177,
+          "churners": 25,
+          "rate": 0.141243,
+          "p": 0.145132,
+          "cum_capture": 0.933619,
+          "lift": 0.53261
+        },
+        {
+          "decile": 7,
+          "n": 177,
+          "churners": 22,
+          "rate": 0.124294,
+          "p": 0.0825583,
+          "cum_capture": 0.980728,
+          "lift": 0.468697
+        },
+        {
+          "decile": 8,
+          "n": 177,
+          "churners": 5,
+          "rate": 0.0282486,
+          "p": 0.0433164,
+          "cum_capture": 0.991435,
+          "lift": 0.106522
+        },
+        {
+          "decile": 9,
+          "n": 177,
+          "churners": 3,
+          "rate": 0.0169492,
+          "p": 0.018869,
+          "cum_capture": 0.997859,
+          "lift": 0.0639132
+        },
+        {
+          "decile": 10,
+          "n": 168,
+          "churners": 1,
+          "rate": 0.00595238,
+          "p": 0.00540003,
+          "cum_capture": 1.0,
+          "lift": 0.0224457
+        }
+      ]
+    },
+    "calibration": {
+      "brier": 0.136271,
+      "max_bin_gap": 0.0502991,
+      "mean_pred": 0.265758,
+      "mean_actual": 0.26519
+    },
+    "campaign": {
+      "groups": {
+        "model": {
+          "customers": 2356,
+          "churners": 1325,
+          "churn_rate": 0.562394,
+          "churner_mrr": 103816.4,
+          "group_mrr": 182639.65,
+          "saved_revenue": 373739.04,
+          "cost": 230947.58,
+          "net_value": 142791.46,
+          "roi": 0.618285,
+          "breakeven_save_rate": 0.185381,
+          "customers_saved": 397.5
+        },
+        "rule_m2m_fiber_first_year": {
+          "customers": 916,
+          "churners": 643,
+          "churn_rate": 0.701965,
+          "churner_mrr": 53178.3,
+          "group_mrr": 75183.15,
+          "saved_revenue": 191441.88,
+          "cost": 94799.78,
+          "net_value": 96642.1,
+          "roi": 1.01943,
+          "breakeven_save_rate": 0.148556,
+          "customers_saved": 192.9
+        },
+        "all_month_to_month": {
+          "customers": 3875,
+          "churners": 1655,
+          "churn_rate": 0.427097,
+          "churner_mrr": 120847.1,
+          "group_mrr": 257294.15,
+          "saved_revenue": 435049.56,
+          "cost": 328127.98,
+          "net_value": 106921.58,
+          "roi": 0.325853,
+          "breakeven_save_rate": 0.226269,
+          "customers_saved": 496.5
+        },
+        "everyone": {
+          "customers": 7043,
+          "churners": 1869,
+          "churn_rate": 0.26537,
+          "churner_mrr": 139130.85,
+          "group_mrr": 456116.6,
+          "saved_revenue": 500871.06,
+          "cost": 582554.92,
+          "net_value": -81683.86,
+          "roi": -0.140217,
+          "breakeven_save_rate": 0.348925,
+          "customers_saved": 560.7
+        }
+      },
+      "best_group": "model",
+      "net_by_save_rate": {
+        "0.1": -106367.9,
+        "0.2": 18211.78,
+        "0.3": 142791.46,
+        "0.4": 267371.14,
+        "0.5": 391950.82
+      },
+      "target_m2m_share": 0.981324,
+      "target_fiber_share": 0.777589,
+      "target_echeck_share": 0.651104,
+      "target_first_year_share": 0.578947,
+      "target_avg_charges": 77.5211,
+      "breakeven_probability_at_avg_charges": 0.35125,
+      "oof_roc_auc_full_base": 0.844963
+    },
+    "risk_bands_summary": [
+      {
+        "risk_band": "1. High",
+        "customers": 1569,
+        "actual_churn_rate": 0.658381,
+        "avg_probability": 0.644298,
+        "mrr": 126069.25,
+        "expected_mrr_at_risk": 81604.37
+      },
+      {
+        "risk_band": "2. Medium",
+        "customers": 1451,
+        "actual_churn_rate": 0.341833,
+        "avg_probability": 0.366959,
+        "mrr": 102017.7,
+        "expected_mrr_at_risk": 37648.23
+      },
+      {
+        "risk_band": "3. Low",
+        "customers": 4023,
+        "actual_churn_rate": 0.084514,
+        "avg_probability": 0.0815256,
+        "mrr": 228029.65,
+        "expected_mrr_at_risk": 20055.67
+      }
+    ]
+  },
+  "excel_check": {
+    "recalculated_by_excel": true,
+    "cells_checked": 10,
+    "mismatches": 0
+  },
+  "dashboard": {
+    "customers": 7043,
+    "churned": 1869,
+    "mrr_lost": 139130.85,
+    "size_mb": 5.21,
+    "headline": "26.5% of 7,043 customers churned, taking $139k of monthly revenue. Offering the 2,356 customers above a 35% predicted risk a 20%-off deal is worth about $143k net over 12 months; it breaks even if the offer saves 18.5% of would-be churners."
+  },
+  "data_quality": {
+    "log": [
+      {
+        "step": 1,
+        "action": "Drop duplicate customerID",
+        "rows_before": 7043,
+        "rows_after": 7043,
+        "rows_affected": 0,
+        "decision": "One row per customer is required for churn rates."
+      },
+      {
+        "step": 2,
+        "action": "Set blank TotalCharges to 0",
+        "rows_before": 7043,
+        "rows_after": 7043,
+        "rows_affected": 11,
+        "decision": "All 11 blanks have tenure 0: new customers not yet billed, so 0 is the true value."
+      },
+      {
+        "step": 3,
+        "action": "Encode Churn Yes/No as 1/0",
+        "rows_before": 7043,
+        "rows_after": 7043,
+        "rows_affected": 1869,
+        "decision": "Target for rates and models."
+      },
+      {
+        "step": 4,
+        "action": "Add tenure and monthly-charge bands",
+        "rows_before": 7043,
+        "rows_after": 7043,
+        "rows_affected": 0,
+        "decision": "Readable segments for reporting; models use the raw numbers."
+      },
+      {
+        "step": 5,
+        "action": "Keep TotalCharges that differ from tenure x MonthlyCharges by more than 20%",
+        "rows_before": 7043,
+        "rows_after": 7043,
+        "rows_affected": 59,
+        "decision": "Plan changes over a customer's life explain the gap; values are internally consistent otherwise."
+      }
+    ],
+    "checks": [
+      {
+        "check": "duplicate customerID",
+        "count": 0
+      },
+      {
+        "check": "blank TotalCharges",
+        "count": 11
+      },
+      {
+        "check": "blank TotalCharges with tenure > 0",
+        "count": 0
+      },
+      {
+        "check": "Churn not in (Yes, No)",
+        "count": 0
+      },
+      {
+        "check": "tenure outside 0-72",
+        "count": 0
+      },
+      {
+        "check": "MonthlyCharges <= 0",
+        "count": 0
+      },
+      {
+        "check": "TotalCharges below MonthlyCharges (tenure >= 1)",
+        "count": 0
+      },
+      {
+        "check": "TotalCharges more than 20% away from tenure x MonthlyCharges",
+        "count": 59
+      },
+      {
+        "check": "internet add-on set while InternetService = 'No'",
+        "count": 0
+      },
+      {
+        "check": "MultipleLines set while PhoneService = 'No'",
+        "count": 0
+      }
+    ],
+    "raw_columns": 21,
+    "raw_rows": 7043,
+    "validation_tolerance_pct": 20,
+    "blank_total_charges": 11,
+    "dax_measures": 16
+  }
+}
