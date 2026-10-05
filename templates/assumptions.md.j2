@@ -1,0 +1,41 @@
+# Assumptions and cleaning decisions
+
+Generated from `reports/cleaning_log.csv`, `reports/audit_checks.csv` and `reports/facts.json`.
+
+## Definitions
+
+- **Churned:** `Churn = Yes` (left within the last month of the snapshot).
+- **Monthly recurring revenue (MRR):** `MonthlyCharges`. Revenue lost = MRR of churned customers; annualised = x{{ a.constants.months_per_year }}.
+- **Tenure bands:** {% for lo in a.constants.tenure_band_starts %}{{ lo }}-{{ a.constants.tenure_band_edges[loop.index0] }}{% if not loop.last %}, {% endif %}{% endfor %} months. **Charge bands:** under ${{ a.constants.charge_band_edges[0] }}, ${{ a.constants.charge_band_edges[0] }}-{{ a.constants.charge_band_edges[1] }}, ${{ a.constants.charge_band_edges[1] }}-{{ a.constants.charge_band_edges[2] }}, ${{ a.constants.charge_band_edges[2] }}+.
+- **Confidence intervals:** Wilson score, {{ a.constants.ci_level_pct }}%.
+- **Driver tests:** chi-square with Cramer's V (categorical), Mann-Whitney U with rank-biserial r (numeric), Bonferroni across {{ a.drivers.n_tested }} tests.
+
+## Campaign assumptions (inputs to `src/model.py` and the Excel calculator)
+
+| Input | Value |
+|---|---|
+| Discount | {{ m.campaign_assumptions.offer_discount_pct }}% of the monthly bill |
+| Discount length | {{ m.campaign_assumptions.offer_months }} months, taken by every targeted customer |
+| Contact cost | {{ m.campaign_assumptions.contact_cost | money }} per targeted customer |
+| Save rate | {{ m.campaign_assumptions.save_rate | pct(0) }} of would-be churners retained |
+| Value of a saved customer | {{ m.campaign_assumptions.value_horizon_months }} months of their monthly charges (revenue, not margin) |
+
+Net value of targeting customer *i* = churned<sub>i</sub> x save rate x monthly charge<sub>i</sub> x horizon - (contact cost + discount x months x monthly charge<sub>i</sub>).
+
+## Cleaning log (Python layer, `src/clean.py`)
+
+| Step | Action | Rows before | Rows after | Rows affected | Why |
+|---|---|---|---|---|---|
+{% for r in log -%}
+| {{ r.step }} | {{ r.action }} | {{ r.rows_before | num }} | {{ r.rows_after | num }} | {{ r.rows_affected | num }} | {{ r.decision }} |
+{% endfor %}
+The SQL staging layer (`sql/01_staging_clean.sql`) applies the same rules; `tests/test_metrics.py` checks both give identical results.
+
+## Data audit (`src/audit.py`)
+
+| Check | Count |
+|---|---|
+{% for c in checks -%}
+| {{ c.check }} | {{ c.count | num }} |
+{% endfor %}
+Column-level profile: `reports/audit_table.csv`.

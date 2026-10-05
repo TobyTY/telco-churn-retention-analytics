@@ -1,0 +1,49 @@
+{%- set k = a.kpi -%}{%- set s = a.segments -%}{%- set c = m.campaign -%}{%- set g = c.groups.model -%}{%- set ca = m.campaign_assumptions -%}
+# Executive summary: who churns, what it costs, and where to spend the retention budget
+
+*IBM Telco Customer Churn sample (real data), {{ k.customers | num }} customers. All figures come from `reports/facts.json`.*
+
+## The problem
+
+{{ k.churn_rate | pct }} of customers ({{ k.churned | num }}) churned. They were paying {{ k.mrr_lost | usd }} a month between them, which is
+{{ k.mrr_lost_share | pct }} of monthly revenue and {{ k.annual_revenue_lost | usd }} a year. Churners pay more than the customers who stay
+({{ k.avg_charges_churned | money }} vs {{ k.avg_charges_retained | money }} a month), so every lost customer is an above-average one.
+
+## Who churns
+
+- **Short commitments.** Month-to-month customers churn {{ s.m2m.churn_rate | pct(0) }}, {{ s.m2m_vs_two_year_ratio | sig(0) }} times the two-year rate
+  ({{ s.two_year.churn_rate | pct(0) }}).
+- **New customers.** {{ k.churned_in_first_year_share | pct(0) }} of churners left within their first year; first-year churn is {{ s.tenure_0_12.churn_rate | pct(0) }}.
+- **Fiber and electronic check.** Fiber-optic customers churn {{ s.fiber.churn_rate | pct(0) }} and electronic-check payers {{ s.echeck.churn_rate | pct(0) }}.
+- **No support services.** Customers without tech support churn {{ s.no_tech_support.churn_rate | pct(0) }} vs {{ s.tech_support.churn_rate | pct(0) }} with it.
+
+The single worst segment is new month-to-month fiber customers: {{ a.revenue_at_risk.hot_share_of_customers | pct(0) }} of the base, {{ a.revenue_at_risk.hot_churn_rate | pct(0) }} churn,
+{{ a.revenue_at_risk.hot_share_of_mrr_lost | pct(0) }} of lost revenue.
+
+## What to do
+
+Run a retention offer ({{ ca.offer_discount_pct }}% off the bill for {{ ca.offer_months }} months) for the **{{ g.customers | num }} customers whose predicted churn
+risk is at least {{ m.threshold.chosen | pct(0) }}**. If the offer keeps {{ ca.save_rate | pct(0) }} of the would-be churners for a year:
+
+| | Value |
+|---|---|
+| Revenue kept over {{ ca.value_horizon_months }} months | {{ g.saved_revenue | usd }} |
+| Cost of the offer and outreach | {{ g.cost | usd }} |
+| **Net value** | **{{ g.net_value | usd }}** (ROI {{ g.roi | pct(0) }}) |
+| **Break-even save rate** | **{{ g.breakeven_save_rate | pct }}** |
+
+Targeting everyone would lose {{ (c.groups.everyone.net_value | abs) | usd }}: the discount given to customers who were never going to leave costs more than it saves.
+The ranked list is what makes the campaign pay.
+
+## Structural fixes (beyond the campaign)
+
+1. Move month-to-month customers to annual contracts at renewal with a small loyalty discount.
+2. Fix the first-year experience for fiber customers (onboarding call, proactive support in month one).
+3. Push automatic payment methods; electronic-check payers churn at {{ s.echeck_vs_auto_card_ratio | sig(1) }} times the rate of automatic card payers
+   ({{ s.echeck.churn_rate | pct(0) }} vs {{ s.auto_card.churn_rate | pct(0) }}).
+4. Bundle tech support and online security into fiber plans.
+
+## Next step
+
+Pilot the offer on a random half of the target list for one quarter, compare churn with the other half, and replace the assumed
+{{ ca.save_rate | pct(0) }} save rate with the measured one in `excel/retention_campaign_roi.xlsx`.

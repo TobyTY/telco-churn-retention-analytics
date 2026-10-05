@@ -1,0 +1,98 @@
+{%- set k = a.kpi -%}{%- set s = a.segments -%}{%- set c = m.campaign -%}{%- set g = c.groups.model -%}{%- set ca = m.campaign_assumptions -%}{%- set th = m.threshold -%}{%- set mo = m.models -%}{%- set lk = m.leakage -%}
+# Customer Churn and Retention Analytics (IBM Telco, real data)
+
+**Live dashboard:** {{ pages_url }} · **Data:** IBM Telco Customer Churn sample, {{ k.customers | num }} customers, {{ q.raw_columns }} fields
+
+> **Headline: target the {{ g.customers | num }} customers above a {{ th.chosen | pct(0) }} predicted churn risk with a {{ ca.offer_discount_pct }}%-off-for-{{ ca.offer_months }}-months offer
+> to save about {{ g.saved_revenue | usd }} of revenue over {{ ca.value_horizon_months }} months.** Net of the {{ g.cost | usd }} offer cost that is
+> **{{ g.net_value | usd }}** (ROI {{ g.roi | pct(0) }}), and the campaign **breaks even if the offer saves {{ g.breakeven_save_rate | pct }} of would-be churners**
+> (assumed: {{ ca.save_rate | pct(0) }}). The group is {{ c.target_m2m_share | pct(0) }} month-to-month and {{ c.target_fiber_share | pct(0) }} fiber-optic customers;
+> offering the same deal to everyone would lose {{ (c.groups.everyone.net_value | abs) | usd }}.
+
+![Churn overview](reports/figures/dashboard_overview.png)
+
+## Key numbers
+
+| Metric | Value | Definition |
+|---|---|---|
+| Customers | {{ k.customers | num }} | One row per customer |
+| Churn rate | {{ k.churn_rate | pct }} ({{ k.churned | num }} customers) | `Churn = Yes`: left within the last month |
+| Monthly revenue lost | {{ k.mrr_lost | usd }} | Monthly charges of churned customers, {{ k.mrr_lost_share | pct }} of all monthly revenue |
+| Annualised revenue lost | {{ k.annual_revenue_lost | usd }} | Monthly revenue lost x {{ a.constants.months_per_year }} |
+| Churners who left in their first year | {{ k.churned_in_first_year_share | pct(0) }} | Tenure of 12 months or less |
+| Best model (test ROC-AUC / PR-AUC) | {{ mo.best }} ({{ mo.best_test_roc_auc | sig(3) }} / {{ mo.best_test_pr_auc | sig(3) }}) | {{ m.protocol.test_size | pct(0) }} stratified hold-out |
+| Top-decile lift | {{ m.lift.top_decile_lift | sig(1) }}x | Churn rate in the riskiest 10% vs the average |
+
+## Answers to the five business questions
+
+1. **Who churns?** Month-to-month customers churn {{ s.m2m.churn_rate | pct }} ({{ a.constants.ci_level_pct }}% CI {{ s.m2m.ci_low | pct }} to {{ s.m2m.ci_high | pct }}), against
+   {{ s.one_year.churn_rate | pct }} on one-year and {{ s.two_year.churn_rate | pct }} on two-year contracts. First-year customers churn {{ s.tenure_0_12.churn_rate | pct }};
+   fiber-optic {{ s.fiber.churn_rate | pct }}; electronic-check payers {{ s.echeck.churn_rate | pct }}; customers without tech support {{ s.no_tech_support.churn_rate | pct }}.
+   ![Churn by segment](reports/figures/01_churn_by_segment.png)
+2. **What does it cost?** {{ k.mrr_lost | usd }} a month ({{ k.annual_revenue_lost | usd }} a year). Month-to-month contracts are {{ s.m2m_share_of_customers | pct(0) }} of customers but
+   {{ s.m2m_share_of_mrr_lost | pct(0) }} of the loss. One segment, new month-to-month fiber customers ({{ a.revenue_at_risk.hot_customers | num }} people,
+   {{ a.revenue_at_risk.hot_share_of_customers | pct(0) }} of the base), churns {{ a.revenue_at_risk.hot_churn_rate | pct(0) }} and carries {{ a.revenue_at_risk.hot_share_of_mrr_lost | pct(0) }} of lost revenue.
+   ![Revenue at risk](reports/figures/02_revenue_at_risk.png)
+3. **Strongest drivers.** Chi-square tests with Cramer's V (categories) and Mann-Whitney with rank-biserial r (numbers), Bonferroni-corrected:
+   {% for d in a.drivers.top[:4] %}{{ d.label | lower }} ({{ d.effect | sig }}){% if not loop.last %}, {% endif %}{% endfor %}.
+   {{ a.drivers.n_significant }} of {{ a.drivers.n_tested }} features are significant; gender is not (V = {{ a.drivers.gender_v | sig(3) }}, p = {{ a.drivers.gender_p | sig }}).
+   Kaplan-Meier: only {{ a.survival.m2m_s72 | pct(0) }} of month-to-month customers would still be active at {{ a.constants.survival_checkpoints[2] }} months, against
+   {{ a.survival.two_year_s72 | pct(0) }} on two-year contracts (log-rank p < {{ a.constants.p_floor }}).
+   ![Kaplan-Meier](reports/figures/04_kaplan_meier_contract.png)
+4. **Risk scoring and its value.** Logistic regression, random forest and gradient boosting were compared with {{ m.protocol.cv_folds }}-fold stratified cross-validation.
+   **The tree models did not beat the logistic-regression baseline** (CV ROC-AUC {% for r in mo.table %}{% if r.model != "Logistic regression (class-weighted)" %}{{ r.model | lower }} {{ r.cv_roc_auc | sig(3) }}{% if not loop.last %}, {% endif %}{% endif %}{% endfor %}),
+   so the simpler, explainable model is used. The riskiest 10% of test customers churn at {{ m.lift.top_decile_lift | sig(1) }}x the average and the riskiest three deciles contain {{ m.lift.top3_capture | pct(0) }} of churners.
+   ![Lift and gains](reports/figures/12_lift_gains.png)
+5. **Campaign break-even and best target group.** The offer costs {{ ca.contact_cost | money }} to deliver plus {{ ca.offer_discount_pct }}% of the bill for {{ ca.offer_months }} months.
+   Targeting threshold chosen to maximise net value on training folds: {{ th.chosen | sig }}; on the untouched test set it reaches recall {{ th.test_recall | pct(0) }} at precision {{ th.test_precision | pct(0) }}.
+
+   | Target group | Customers | Churn rate | Net value | ROI | Break-even save rate |
+   |---|---|---|---|---|---|
+   | **Model: probability >= {{ th.chosen | sig }}** | {{ g.customers | num }} | {{ g.churn_rate | pct }} | **{{ g.net_value | usd }}** | {{ g.roi | pct(0) }} | {{ g.breakeven_save_rate | pct }} |
+   | Rule: month-to-month + fiber + first year | {{ c.groups.rule_m2m_fiber_first_year.customers | num }} | {{ c.groups.rule_m2m_fiber_first_year.churn_rate | pct }} | {{ c.groups.rule_m2m_fiber_first_year.net_value | usd }} | {{ c.groups.rule_m2m_fiber_first_year.roi | pct(0) }} | {{ c.groups.rule_m2m_fiber_first_year.breakeven_save_rate | pct }} |
+   | All month-to-month | {{ c.groups.all_month_to_month.customers | num }} | {{ c.groups.all_month_to_month.churn_rate | pct }} | {{ c.groups.all_month_to_month.net_value | usd }} | {{ c.groups.all_month_to_month.roi | pct(0) }} | {{ c.groups.all_month_to_month.breakeven_save_rate | pct }} |
+   | Everyone | {{ c.groups.everyone.customers | num }} | {{ c.groups.everyone.churn_rate | pct }} | {{ c.groups.everyone.net_value | usd }} | {{ c.groups.everyone.roi | pct(0) }} | {{ c.groups.everyone.breakeven_save_rate | pct }} |
+
+   The rule-based group has the best ROI; the model group has the most net value because it also reaches high-risk customers outside the rule.
+   ![Threshold net value](reports/figures/11_threshold_net_value.png)
+
+More detail: [executive summary](reports/executive_summary.md) · [insights and recommendations](reports/insights_and_recommendations.md) ·
+[model card and leakage checks](docs/model_card.md) · [assumptions and cleaning log](docs/assumptions.md) · [project brief](docs/project_brief.md) · [interview notes](docs/interview_talking_points.md)
+
+## Leakage check (summary)
+
+`customer_id` and the derived bands are excluded; preprocessing is fitted inside each pipeline; train and test share no customers; a model trained on
+shuffled labels scores test ROC-AUC {{ lk.shuffled_label_test_auc | sig(3) }} (chance); no single feature exceeds ROC-AUC {{ lk.max_single_feature_auc | sig(3) }}; dropping
+`total_charges` (the most "suspicious" field, since it grows with tenure) changes test ROC-AUC from {{ lk.auc_with_total_charges | sig(3) }} to {{ lk.auc_without_total_charges | sig(3) }}.
+Verdict: {{ lk.verdict }}. Details in [docs/model_card.md](docs/model_card.md).
+
+## What is in the repo
+
+| Path | Contents |
+|---|---|
+| `sql/` | `00_schema`, `01_staging_clean` (dedup, blank `TotalCharges`, bands), `02_analysis_views` (churn by segment with `RANK`, revenue at risk with running `SUM`, a manual Kaplan-Meier curve from window functions, `NTILE` charge deciles), `03_kpi_queries` |
+| `src/` | Pipeline: download, DuckDB warehouse, audit, cleaning, EDA, statistics (`analysis.py`), models and campaign economics (`model.py`), Excel, dashboard, reports |
+| `notebooks/` | `01_audit`, `02_cleaning`, `03_eda`, `04_analysis` (statistics and modelling), executed with outputs |
+| `excel/retention_campaign_roi.xlsx` | Retention campaign ROI calculator: inputs with data validation, group selector, sensitivity table, chart; churn by segment with Wilson CIs as formulas |
+| `dashboard/index.html` | Self-contained dashboard: Churn Overview, Segment Deep-Dive, At-Risk Customers (risk-band filter); served from `docs/` by GitHub Pages |
+| `powerbi/` | Data model, {{ q.dax_measures }} DAX measures, theme, layout and build guide (no `.pbix` committed) |
+| `reports/` | `facts.json` (every published number), model comparison, lift table, segment table, executive summary, insights, figures |
+| `tests/` | Data quality, SQL-vs-Python agreement, model protocol and leakage assertions, output consistency |
+
+## Run it
+
+```bash
+python -m venv .venv && . .venv/bin/activate   # Windows: .venv\Scripts\activate
+pip install -r requirements.txt
+make all        # download -> warehouse -> audit -> clean -> eda -> analysis -> model -> excel -> dashboard -> reports -> notebooks -> test -> check
+```
+
+## Limitations
+
+- IBM's sample is a single snapshot, so "churn" cannot be split by month and Kaplan-Meier treats tenure at the snapshot as follow-up time.
+- Revenue figures are monthly charges, not margin; the campaign value is revenue retained, not profit.
+- The save rate ({{ ca.save_rate | pct(0) }}) and the offer terms are assumptions; run the offer as a controlled test on part of the target list before rolling it out.
+  The Excel calculator shows how the answer moves (net value is {{ c.net_by_save_rate['0.2'] | usd }} at a {{ ca.save_rate_grid[1] | pct(0) }} save rate and
+  {{ c.net_by_save_rate['0.4'] | usd }} at {{ ca.save_rate_grid[3] | pct(0) }}).
+
+Data licence: Apache-2.0 (IBM sample repository). Code licence: MIT.

@@ -1,0 +1,35 @@
+# Data
+
+**Real data.** IBM Telco Customer Churn sample data set.
+
+| Field | Value |
+|---|---|
+| Source used | {{ src.source }} ({{ src.url }}) |
+| Fallback | Kaggle `blastchar/telco-customer-churn` via kagglehub (`src/download.py`) |
+| Licence | {{ src.licence }} |
+| Retrieved | {{ src.retrieved }} |
+| Rows | {{ src.rows | num }} customers, {{ q.raw_columns }} columns; downloaded to `data/raw/` at build time (not committed) |
+
+Validation on download: {{ q.raw_columns }} expected columns, row count within {{ q.validation_tolerance_pct }}% of the published size, non-null `customerID`.
+
+## Data dictionary
+
+| Field | Meaning |
+|---|---|
+| `customerID` | Customer key (excluded from models) |
+| `gender`, `SeniorCitizen`, `Partner`, `Dependents` | Demographics |
+| `tenure` | Months with the company (0-72) |
+| `PhoneService`, `MultipleLines` | Phone products |
+| `InternetService` | DSL, Fiber optic or No |
+| `OnlineSecurity`, `OnlineBackup`, `DeviceProtection`, `TechSupport`, `StreamingTV`, `StreamingMovies` | Add-ons (Yes / No / No internet service) |
+| `Contract` | Month-to-month, One year, Two year |
+| `PaperlessBilling`, `PaymentMethod` | Billing |
+| `MonthlyCharges` | Current monthly bill ($) |
+| `TotalCharges` | Lifetime billed ($); blank for {{ q.blank_total_charges }} brand-new customers |
+| `Churn` | Yes = left within the last month |
+
+## Processed outputs
+
+- `data/warehouse.duckdb`: raw and staging tables, analysis views, `model_scores`.
+- `data/processed/customers_clean.parquet`: Python cleaning layer.
+- `reports/customer_scores.csv`: out-of-fold churn probability and risk band per customer (regenerated, not committed).

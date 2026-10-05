@@ -1,0 +1,43 @@
+{%- set k = a.kpi -%}{%- set s = a.segments -%}{%- set c = m.campaign -%}{%- set g = c.groups.model -%}{%- set ca = m.campaign_assumptions -%}{%- set mo = m.models -%}{%- set lk = m.leakage -%}
+# Interview talking points
+
+## 60-second pitch
+
+"I took IBM's Telco churn data, {{ k.customers | num }} customers with a {{ k.churn_rate | pct }} churn rate, and turned it into a retention budget decision.
+SQL in DuckDB for churn by segment and revenue at risk, chi-square and Cramer's V to rank drivers, Kaplan-Meier for retention by contract. Then I compared
+logistic regression, random forest and gradient boosting with stratified cross-validation; the logistic regression won, so I kept the simple model. The key
+step was choosing the targeting threshold from campaign economics instead of using 0.5. At a {{ m.threshold.chosen | pct(0) }} risk threshold the offer reaches
+{{ g.customers | num }} customers and is worth about {{ g.net_value | usd }} net; it breaks even at a {{ g.breakeven_save_rate | pct }} save rate, and a blanket offer
+would lose money. Everything is in a live dashboard and an Excel ROI calculator where the assumptions can be changed."
+
+## Five hard questions
+
+**1. Why not just use the best-scoring model, or tune the forest until it wins?**
+Because none of them is meaningfully better: CV ROC-AUC differs by {{ mo.cv_gap | sig(3) }} between the best and worst model,
+well inside one standard deviation across folds ({{ mo.baseline_cv_sd | sig(3) }}). Tuning until the complex model wins on the same folds is overfitting the evaluation. The logistic regression is
+explainable to a retention manager and its probabilities are calibrated (Brier {{ m.calibration.brier | sig(3) }}).
+
+**2. How do you know there is no leakage?**
+I excluded the ID and derived bands, kept preprocessing inside the pipeline, checked train and test share no customers, and ran a shuffled-label control:
+test ROC-AUC {{ lk.shuffled_label_test_auc | sig(3) }}, which is chance. The strongest single feature reaches only {{ lk.max_single_feature_auc | sig(3) }}. `TotalCharges` grows with tenure, so I
+re-ran without it: ROC-AUC {{ lk.auc_without_total_charges | sig(3) }} vs {{ lk.auc_with_total_charges | sig(3) }}. Nothing is doing suspicious work.
+
+**3. You handled class imbalance without re-weighting. Why?**
+About one customer in four churns, which is imbalanced but not extreme. Re-weighting moves the probabilities away from reality, and the revenue-at-risk numbers
+need real probabilities. So I stratified the split, reported PR-AUC, and moved the decision threshold using costs. I show the class-weighted model too: same
+ROC-AUC, higher recall at 0.5, worse calibration.
+
+**4. Your save rate is an assumption. Isn't the whole answer made up?**
+The sizing depends on it, which is why I report the break-even point: the campaign pays if it saves more than {{ g.breakeven_save_rate | pct }} of would-be churners.
+Net value goes from {{ c.net_by_save_rate['0.2'] | usd }} at a {{ ca.save_rate_grid[1] | pct(0) }} save rate to {{ c.net_by_save_rate['0.4'] | usd }} at {{ ca.save_rate_grid[3] | pct(0) }}.
+The recommendation is to measure it with a randomised pilot, then update the calculator.
+
+**5. Is a "churn rate" from a snapshot meaningful?**
+It is the share of this customer base that left in the observed period, which is enough to rank segments and size a campaign on a base like this one. What it
+cannot do is give a monthly trend or seasonality; for that I would need repeated snapshots. Kaplan-Meier on tenure is the closest I can get to a retention curve.
+
+## Three things I would do differently
+
+1. **Uplift modelling.** The model predicts who will churn, not who the offer will change; with pilot data I would model the treatment effect directly.
+2. **Margin instead of revenue.** Customer value should be contribution margin over expected lifetime, not twelve months of charges.
+3. **Repeated snapshots.** Monthly snapshots would allow time-based validation (train on earlier months, test on later), which is stricter than a random split.

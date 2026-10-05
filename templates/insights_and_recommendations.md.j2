@@ -1,0 +1,71 @@
+{%- set k = a.kpi -%}{%- set s = a.segments -%}{%- set c = m.campaign -%}{%- set g = c.groups.model -%}{%- set ca = m.campaign_assumptions -%}{%- set mo = m.models -%}
+# Insights and recommendations
+
+Each insight: finding, evidence (values from `reports/facts.json`), why it matters, action, and impact with assumptions.
+Real data: IBM Telco Customer Churn sample, {{ k.customers | num }} customers.
+
+---
+
+## 1. Contract length is the biggest lever
+
+- **Finding.** Month-to-month customers churn far more than contract customers.
+- **Evidence.** {{ s.m2m.churn_rate | pct }} vs {{ s.one_year.churn_rate | pct }} (one year) and {{ s.two_year.churn_rate | pct }} (two year), {{ a.constants.ci_level_pct }}% intervals
+  do not overlap; Cramer's V {{ a.drivers.contract_v | sig }}. Month-to-month is {{ s.m2m_share_of_customers | pct(0) }} of customers and {{ s.m2m_share_of_mrr_lost | pct(0) }} of lost revenue.
+- **So what.** Commitment, not price alone, is what keeps customers.
+- **Action.** Offer month-to-month customers an annual plan at renewal with a loyalty discount; make it the default in the sales flow.
+- **Impact.** Not sized separately; it is the mechanism behind the campaign below ({{ c.target_m2m_share | pct(0) }} of the target list is month-to-month).
+
+## 2. Churn is decided in the first year
+
+- **Finding.** Most churn happens early.
+- **Evidence.** {{ k.churned_in_first_year_share | pct(0) }} of churners left within twelve months; first-year churn is {{ s.tenure_0_12.churn_rate | pct }} vs {{ s.tenure_49_72.churn_rate | pct }}
+  after four years. Kaplan-Meier: {{ a.survival.m2m_s12 | pct(0) }} of month-to-month customers are still active after a year.
+- **So what.** Onboarding is a retention function.
+- **Action.** First-quarter programme for new fiber customers: setup call, a service check after the first bill, proactive support contact.
+- **Impact.** Included in the campaign sizing ({{ c.target_first_year_share | pct(0) }} of targeted customers are in their first year).
+
+## 3. One segment carries {{ a.revenue_at_risk.hot_share_of_mrr_lost | pct(0) }} of lost revenue
+
+- **Finding.** New month-to-month fiber customers are the leak.
+- **Evidence.** {{ a.revenue_at_risk.hot_customers | num }} customers ({{ a.revenue_at_risk.hot_share_of_customers | pct(0) }}), churn {{ a.revenue_at_risk.hot_churn_rate | pct(0) }},
+  {{ a.revenue_at_risk.hot_mrr_lost | usd }} of monthly revenue lost.
+- **So what.** A simple rule finds the worst segment without a model.
+- **Action.** Target this rule group first if the model cannot be deployed yet.
+- **Impact.** {{ c.groups.rule_m2m_fiber_first_year.net_value | usd }} net at default assumptions, ROI {{ c.groups.rule_m2m_fiber_first_year.roi | pct(0) }} (the best ROI of any group).
+
+## 4. Electronic-check payers churn at {{ s.echeck_vs_auto_card_ratio | sig(1) }} times the rate of automatic card payers
+
+- **Finding.** Payment method separates churners.
+- **Evidence.** Electronic check {{ s.echeck.churn_rate | pct }} vs automatic credit card {{ s.auto_card.churn_rate | pct }}; {{ c.target_echeck_share | pct(0) }} of the target list pays by electronic check.
+- **So what.** Manual payment is a monthly decision point to leave; it may also signal lower engagement.
+- **Action.** Incentivise switching to automatic payment (one-off bill credit). Test it; the link may not be causal.
+- **Impact.** Not sized: needs an experiment.
+
+## 5. Support services protect customers
+
+- **Finding.** Customers with tech support or online security churn much less.
+- **Evidence.** No tech support {{ s.no_tech_support.churn_rate | pct }} vs with tech support {{ s.tech_support.churn_rate | pct }}; churn falls with every add-on held
+  ({{ e.churn_0_addons_internet | pct(0) }} for internet customers with none, {{ e.churn_5plus_addons | pct(0) }} with five or more).
+- **So what.** Add-ons are a retention tool, not just upsell revenue.
+- **Action.** Bundle tech support into fiber plans for the first six months.
+- **Impact.** Not sized separately.
+
+## 6. A simple model ranks risk well enough to make a campaign pay
+
+- **Finding.** Logistic regression is as good as tree ensembles here.
+- **Evidence.** CV ROC-AUC {% for r in mo.table %}{{ r.model | lower }} {{ r.cv_roc_auc | sig(3) }}{% if not loop.last %}; {% endif %}{% endfor %}.
+  Test ROC-AUC {{ mo.best_test_roc_auc | sig(3) }}, PR-AUC {{ mo.best_test_pr_auc | sig(3) }}; top-decile lift {{ m.lift.top_decile_lift | sig(1) }}x.
+- **So what.** The explainable model is the right one to deploy; the fancier models did not beat it and were not tuned until they did.
+- **Action.** Score customers monthly; refresh the target list.
+- **Impact.** See insight 7.
+
+## 7. Target by risk, not by blanket offer
+
+- **Finding.** Only a targeted campaign makes money.
+- **Evidence.** Threshold {{ m.threshold.chosen | sig }} (chosen on training folds) targets {{ g.customers | num }} customers: saved revenue {{ g.saved_revenue | usd }},
+  cost {{ g.cost | usd }}, net {{ g.net_value | usd }}, break-even save rate {{ g.breakeven_save_rate | pct }}. Everyone: net {{ c.groups.everyone.net_value | usd }}.
+- **So what.** Discounts given to loyal customers are pure cost.
+- **Action.** Launch the offer for the model's target list; hold out a random control half.
+- **Impact.** {{ g.net_value | usd }} net over {{ ca.value_horizon_months }} months at a {{ ca.save_rate | pct(0) }} save rate ({{ c.net_by_save_rate['0.2'] | usd }} at
+  {{ ca.save_rate_grid[1] | pct(0) }}, {{ c.net_by_save_rate['0.4'] | usd }} at {{ ca.save_rate_grid[3] | pct(0) }}). Assumptions: {{ ca.offer_discount_pct }}% discount for
+  {{ ca.offer_months }} months taken by every targeted customer, {{ ca.contact_cost | money }} contact cost, {{ ca.value_horizon_months }} months of revenue per saved customer.

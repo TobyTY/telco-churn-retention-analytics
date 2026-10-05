@@ -1,0 +1,53 @@
+{%- set p = m.protocol -%}{%- set lk = m.leakage -%}{%- set mo = m.models -%}
+# Model card: churn risk score
+
+**Purpose.** Rank customers by probability of churning so a retention offer can be targeted. Not for pricing or credit decisions.
+
+**Data.** IBM Telco Customer Churn sample, {{ a.kpi.customers | num }} customers, churn rate {{ a.kpi.churn_rate | pct }}.
+
+## Protocol
+
+| Item | Choice |
+|---|---|
+| Split | Stratified train/test, {{ p.n_train | num }} / {{ p.n_test | num }} customers, seed {{ p.seed }} (train churn {{ p.train_churn_rate | pct }}, test {{ p.test_churn_rate | pct }}) |
+| Model selection | {{ p.cv_folds }}-fold stratified CV ROC-AUC on the training set only |
+| Features | {{ p.n_features_raw }} raw fields: tenure, monthly and total charges, add-on count, five yes/no flags, eleven categorical fields (one-hot) |
+| Excluded | {% for k, v in lk.excluded_columns.items() %}`{{ k }}` ({{ v }}){% if not loop.last %}, {% endif %}{% endfor %} |
+| Imbalance | Stratification, PR-AUC, cost-based threshold; class-weighted variant reported for comparison |
+| Threshold | {{ m.threshold.chosen | sig }}, maximising campaign net value on out-of-fold training predictions |
+
+## Results
+
+| Model | CV ROC-AUC (sd) | CV PR-AUC | Test ROC-AUC | Test PR-AUC | Precision / recall / F1 at 0.5 | Brier |
+|---|---|---|---|---|---|---|
+{% for r in mo.table -%}
+| {{ r.model }} | {{ r.cv_roc_auc | sig(3) }} ({{ r.cv_roc_auc_sd | sig(3) }}) | {{ r.cv_pr_auc | sig(3) }} | {{ r.test_roc_auc | sig(3) }} | {{ r.test_pr_auc | sig(3) }} | {{ r["precision_at_0.5"] | sig }} / {{ r["recall_at_0.5"] | sig }} / {{ r["f1_at_0.5"] | sig }} | {{ r.brier | sig(3) }} |
+{% endfor %}
+Chosen: **{{ mo.best }}**. {% if mo.best_beats_baseline %}It beats the logistic-regression baseline.{% else %}The tree ensembles did not beat the logistic-regression baseline, so the baseline is used.{% endif %}
+
+At the campaign threshold on the test set: precision {{ m.threshold.test_precision | pct }}, recall {{ m.threshold.test_recall | pct }}, F1 {{ m.threshold.test_f1 | sig }},
+{{ m.threshold.test_targeted_share | pct }} of customers targeted. Calibration: mean predicted {{ m.calibration.mean_pred | pct }} vs actual {{ m.calibration.mean_actual | pct }};
+largest decile gap {{ m.calibration.max_bin_gap | pct }}.
+
+## Leakage checks
+
+| Check | Result |
+|---|---|
+| Customers in both train and test | {{ lk.id_overlap_train_test }} |
+| Test rows whose features exactly match a training row | {{ lk.test_rows_with_identical_train_features }} (common plan profiles of different customers; labels can differ) |
+| Shuffled-label control, test ROC-AUC | {{ lk.shuffled_label_test_auc | sig(3) }} (chance = 0.5) |
+| Strongest single feature ROC-AUC | {{ lk.max_single_feature_auc | sig(3) }} (`{{ lk.max_single_feature }}`) |
+| Test ROC-AUC with / without `total_charges` | {{ lk.auc_with_total_charges | sig(3) }} / {{ lk.auc_without_total_charges | sig(3) }} |
+| Preprocessing fitted inside the pipeline | {{ lk.preprocessing_inside_pipeline }} |
+
+The shuffled-label and single-feature checks are also assertions in `src/model.py`: the build fails if either signals leakage.
+
+## Plain-language drivers
+
+Odds ratios from the logistic regression (numeric features standardised, so they compare one standard deviation):
+{% for k, v in m.drivers_model.odds_ratios_top_up.items() %}`{{ k }}` x{{ v | sig }}{% if not loop.last %}, {% endif %}{% endfor %} raise churn odds;
+{% for k, v in m.drivers_model.odds_ratios_top_down.items() %}`{{ k }}` x{{ v | sig }}{% if not loop.last %}, {% endif %}{% endfor %} lower them.
+Tenure, monthly charges and total charges are correlated, so read their individual coefficients with care; the univariate statistics in the README are
+the safer explanation for business readers.
+
+Permutation importance (drop in test ROC-AUC when shuffled): {% for k, v in m.drivers_model.permutation_top5.items() %}{{ k }} {{ v | sig(3) }}{% if not loop.last %}, {% endif %}{% endfor %}.
