@@ -1,0 +1,87 @@
+// measures.dax - all measures for the Telco churn report.
+// Create an empty table named _Measures (Enter data, no rows) and add each block as a New measure.
+// Tables: customers (customer_scores.csv joined to the cleaned customer table, see data_model.md), segment_churn, lift.
+
+// Customers in the current filter context. Format: #,##0
+Customers =
+COUNTROWS ( customers )
+
+// Customers who churned. Format: #,##0
+Churned Customers =
+CALCULATE ( COUNTROWS ( customers ), customers[churned] = 1 )
+
+// Churn rate. Format: 0.0%
+Churn Rate =
+DIVIDE ( [Churned Customers], [Customers] )
+
+// Monthly recurring revenue. Format: $#,##0
+MRR =
+SUM ( customers[monthly_charges] )
+
+// Monthly charges of churned customers. Format: $#,##0
+MRR Lost =
+CALCULATE ( SUM ( customers[monthly_charges] ), customers[churned] = 1 )
+
+// Annualised revenue lost. Format: $#,##0
+Annual Revenue Lost =
+[MRR Lost] * 12
+
+// Share of MRR that churned. Format: 0.0%
+MRR Lost % =
+DIVIDE ( [MRR Lost], [MRR] )
+
+// Sum of churn probability x monthly charges (calibrated logistic regression scores). Format: $#,##0
+Expected MRR at Risk =
+SUMX ( customers, customers[churn_probability] * customers[monthly_charges] )
+
+// Average predicted churn probability. Format: 0.0%
+Avg Churn Probability =
+AVERAGE ( customers[churn_probability] )
+
+// Wilson 95% lower bound for the churn rate in the current context. Format: 0.0%
+Churn Rate CI Low =
+VAR n = [Customers]
+VAR p = [Churn Rate]
+VAR z = 1.959964
+RETURN
+    IF ( n > 0, ( p + z * z / ( 2 * n ) - z * SQRT ( p * ( 1 - p ) / n + z * z / ( 4 * n * n ) ) ) / ( 1 + z * z / n ) )
+
+// Wilson 95% upper bound. Format: 0.0%
+Churn Rate CI High =
+VAR n = [Customers]
+VAR p = [Churn Rate]
+VAR z = 1.959964
+RETURN
+    IF ( n > 0, ( p + z * z / ( 2 * n ) + z * SQRT ( p * ( 1 - p ) / n + z * z / ( 4 * n * n ) ) ) / ( 1 + z * z / n ) )
+
+// Campaign inputs come from What-if parameters: Save Rate (0-1), Discount (0-1), Discount Months, Contact Cost, Horizon Months.
+// Customers above the selected probability threshold (What-if parameter 'Threshold'). Format: #,##0
+Targeted Customers =
+CALCULATE ( COUNTROWS ( customers ), FILTER ( customers, customers[churn_probability] >= [Threshold Value] ) )
+
+// Revenue kept from saved churners over the horizon. Format: $#,##0
+Campaign Saved Revenue =
+VAR churner_mrr =
+    CALCULATE ( SUM ( customers[monthly_charges] ),
+        FILTER ( customers, customers[churn_probability] >= [Threshold Value] && customers[churned] = 1 ) )
+RETURN
+    [Save Rate Value] * churner_mrr * [Horizon Months Value]
+
+// Contact cost plus discount for everyone targeted. Format: $#,##0
+Campaign Cost =
+VAR group_mrr =
+    CALCULATE ( SUM ( customers[monthly_charges] ), FILTER ( customers, customers[churn_probability] >= [Threshold Value] ) )
+RETURN
+    [Contact Cost Value] * [Targeted Customers] + [Discount Value] * [Discount Months Value] * group_mrr
+
+// Net value. Format: $#,##0
+Campaign Net Value =
+[Campaign Saved Revenue] - [Campaign Cost]
+
+// Save rate at which the campaign breaks even. Format: 0.0%
+Break-even Save Rate =
+VAR churner_mrr =
+    CALCULATE ( SUM ( customers[monthly_charges] ),
+        FILTER ( customers, customers[churn_probability] >= [Threshold Value] && customers[churned] = 1 ) )
+RETURN
+    DIVIDE ( [Campaign Cost], churner_mrr * [Horizon Months Value] )
