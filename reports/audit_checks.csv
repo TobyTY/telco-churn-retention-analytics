@@ -1,0 +1,11 @@
+check,count
+duplicate customerID,0
+blank TotalCharges,11
+blank TotalCharges with tenure > 0,0
+"Churn not in (Yes, No)",0
+tenure outside 0-72,0
+MonthlyCharges <= 0,0
+TotalCharges below MonthlyCharges (tenure >= 1),0
+TotalCharges more than 20% away from tenure x MonthlyCharges,59
+internet add-on set while InternetService = 'No',0
+MultipleLines set while PhoneService = 'No',0

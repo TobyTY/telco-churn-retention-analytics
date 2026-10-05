@@ -1,0 +1,6 @@
+step,action,rows_before,rows_after,rows_affected,decision
+1,Drop duplicate customerID,7043,7043,0,One row per customer is required for churn rates.
+2,Set blank TotalCharges to 0,7043,7043,11,"All 11 blanks have tenure 0: new customers not yet billed, so 0 is the true value."
+3,Encode Churn Yes/No as 1/0,7043,7043,1869,Target for rates and models.
+4,Add tenure and monthly-charge bands,7043,7043,0,Readable segments for reporting; models use the raw numbers.
+5,Keep TotalCharges that differ from tenure x MonthlyCharges by more than 20%,7043,7043,59,Plan changes over a customer's life explain the gap; values are internally consistent otherwise.

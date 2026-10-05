@@ -1,0 +1,22 @@
+column,dtype,nulls,blank_strings,distinct,min,max,iqr_outliers,top_values
+customerID,object,0,0,7043,,,,
+gender,object,0,0,2,,,,Male=3555; Female=3488
+SeniorCitizen,int32,0,0,2,0.0,1.0,1142.0,
+Partner,object,0,0,2,,,,No=3641; Yes=3402
+Dependents,object,0,0,2,,,,No=4933; Yes=2110
+tenure,int32,0,0,73,0.0,72.0,0.0,
+PhoneService,object,0,0,2,,,,Yes=6361; No=682
+MultipleLines,object,0,0,3,,,,No=3390; Yes=2971; No phone service=682
+InternetService,object,0,0,3,,,,Fiber optic=3096; DSL=2421; No=1526
+OnlineSecurity,object,0,0,3,,,,No=3498; Yes=2019; No internet service=1526
+OnlineBackup,object,0,0,3,,,,No=3088; Yes=2429; No internet service=1526
+DeviceProtection,object,0,0,3,,,,No=3095; Yes=2422; No internet service=1526
+TechSupport,object,0,0,3,,,,No=3473; Yes=2044; No internet service=1526
+StreamingTV,object,0,0,3,,,,No=2810; Yes=2707; No internet service=1526
+StreamingMovies,object,0,0,3,,,,No=2785; Yes=2732; No internet service=1526
+Contract,object,0,0,3,,,,Month-to-month=3875; Two year=1695; One year=1473
+PaperlessBilling,object,0,0,2,,,,Yes=4171; No=2872
+PaymentMethod,object,0,0,4,,,,Electronic check=2365; Mailed check=1612; Bank transfer (automatic)=1544; Credit card (automatic)=1522
+MonthlyCharges,float64,0,0,1585,18.25,118.75,0.0,
+TotalCharges,object,0,11,6531,,,,
+Churn,object,0,0,2,,,,No=5174; Yes=1869
